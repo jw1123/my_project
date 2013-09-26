@@ -42,12 +42,22 @@ for i in range(0,length):
 
 fnorm = complex64(f/f.max())
 t = range(0,size(f))
+t1 = range(0,44100)
 
-fft = complex64(np.ndarray(length))
+fft = complex64(zeros(44100))
+one_s = fnorm[:44100]
 
 #print type(fnorm), type(fft)
 
-pyfftw.FFTW(fnorm,fft)
-#plot(t,fft)
 
+x = pyfftw.FFTW(one_s,fft)
+x.execute()
+out = x.get_output_array()
+inp = x.get_input_array()
+
+plot(t1,out)
+
+
+#plot(t1,fft)
+#plot(t,fft)
 #plot(t,fnorm)
