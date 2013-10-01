@@ -7,19 +7,21 @@ Created on Wed Sep 18 09:43:59 2013
 
 from bregman.suite import *
 from pylab import *
+import pymongo as pm
+import bson as bs
 
 
 a1 = os.path.join(audio_dir,"chu.wav")
-a2 = os.path.join(audio_dir,"br.wav")
-a3 = os.path.join(audio_dir,"ra.wav")
+#a2 = os.path.join(audio_dir,"br.wav")
+#a3 = os.path.join(audio_dir,"ra.wav")
 
 mfc1 = MelFrequencyCepstrum(a1, sample_rate=10000)
-mfc2 = MelFrequencyCepstrum(a2, sample_rate=10000)
-mfc3 = MelFrequencyCepstrum(a3, sample_rate=10000)
+#mfc2 = MelFrequencyCepstrum(a2, sample_rate=10000)
+#mfc3 = MelFrequencyCepstrum(a3, sample_rate=10000)
 
 x = mfc1.MFCC
-y = mfc2.MFCC
-z = mfc3.MFCC
+#y = mfc2.MFCC
+#z = mfc3.MFCC
 
 
 
@@ -90,4 +92,39 @@ rms1 = RMS(a3)
 rms1.feature_plot(dbscale=True)
 title('RMS Rachmaninoff')
 """
+
+if __name__ == "__main__":
+	con = pm.Connection()
+	db = con.test_db1 
+	song = db.song
+	db.song.drop()
+
+
+	song.insert({
+		'_id':1,
+		'song_name':'Can\'t Hold Us',
+		'features': [{'MFCC': x.tolist(), 'Chroma':2}], #bs.binary.Binary(pickle.dumps(x,protocol=2))
+		'artist':'Macklemore & Ryan Lewis'		
+		})
+	s = db.song.find_one()
+	ft = s['features']
+	mf = ft[0]
+	print type(mf['MFCC'])
+	
+	#xf = pickle.loads(str(mf))
+
+	#for song in s:
+		#print song
+
+	#col = s.collection
+	#print col
+
+	#xdes = pickle.loads()
+
+	db.song.remove()
+	db.song.drop()
+
+
+
+
 
