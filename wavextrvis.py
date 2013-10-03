@@ -5,10 +5,8 @@ Created on Wed Sep 18 09:43:59 2013
 @author: jw
 """
 
-from bregman.suite import *
-from pylab import *
-import pymongo as pm
-import bson as bs
+from bregman.suite import LinearFrequencySpectrum, Chromagram, MelFrequencyCepstrum, os, audio_dir
+
 
 
 a1 = os.path.join(audio_dir,"chu.wav")
@@ -20,6 +18,7 @@ a3 = os.path.join(audio_dir,"ra.wav")
 linspec = LinearFrequencySpectrum(a1, nfft=1024, wfft=512, nhop=256)
 linspec.feature_plot(dbscale=True)
 title('Wide-band Linear Spectrum Cant Hold Us')
+
 
 chro = Chromagram(a1) #nfft=16384, wfft=8192, nhop=2205
 chro.feature_plot(dbscale=True, normalize=True)
