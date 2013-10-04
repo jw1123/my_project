@@ -4,12 +4,12 @@ import os
 
 
 
-for root,dirs,files in os.walk("/Users/jw/Desktop/Music1"):
+for root,dirs,files in os.walk("/Users/jw/Desktop/Music1"): #replace the path
     for file1 in files:
         if file1[len(file1)-3:len(file1)] == "m4a":
             input1 = Input(file1)
             codec = AudioCodec("libmp3lame")
-            output = Output("/Users/jw/Desktop/Music1/MP3/"+file1[0:len(file1)-3]+"mp3", codec)
+            output = Output("/Users/jw/Desktop/Music1/MP3/"+file1[0:len(file1)-3]+"mp3", codec) #replace the path
             ffmpeg = FFmpeg("ffmpeg", input1, output)
             ffmpeg.run()
 
