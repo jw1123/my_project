@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from numpy import linalg, array, arange
 
 class Dist:

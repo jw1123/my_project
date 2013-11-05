@@ -1,3 +1,4 @@
+#!/usr/bin/env 
 from extraction import Extr
 from distance import Dist
 from pymongo import Connection

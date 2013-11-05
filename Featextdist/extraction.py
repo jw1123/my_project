@@ -63,7 +63,7 @@ class Extr:
                     self.so.insert({
                         'id':i,
                         'metadata': {
-                        'titel':meta[0],
+                        'title':meta[0],
                         'artist':meta[1],
                         'album':meta[2],
                         'genre':gen,
