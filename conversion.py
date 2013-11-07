@@ -7,43 +7,17 @@ from subprocess import call, STDOUT, PIPE
 
 class Conversion():
 
-    def __init__(self):
-
-        x, y = None, None
-        self.first, self.second = [], []
+    def __init__(self,a):
 
         print "CONVERSION"
-        print "You chose to convert audio files. There are three steps to complete the conversion."
-        print "First: If you have m4a files, they must be converted to mp3 files. So create a M4A"
-        print "folder and put all the m4a files in that folder, plus create an MP3 folder."
-        print "Second: Once you only have mp3 files, you have to add their ID3 tags to them."
-        print "You can do this through iTunes or any other way you want. Save the files again in a"
-        print "folder named MP3TAG."
-        print "Third: Create a folder named WAVE for the output files."
 
-        print "If you have m4a files, type in first the directory to the M4A folder and then the directory to the MP3 folder."
-        print "Else type in skip (s): "
+        input_path = "/Users/jonathan/Documents/DesktopiMac/"
+        output_path = "/Users/jonathan/Documents/DesktopiMac"
 
-        i = 0
-        while x != 's' or i < 2:
-            x = raw_input("Directory: ")
-            if x != 's':
-                self.first.append(x)
-            i+=1
-        if len(self.first) == 2:
-            self.m4a_to_mp3(self.first[0],self.first[1])
-        print "Now add the ID3 tags. Once you've done it, create a folder MP3TAG and save all"
-        print "the tagged mp3 files in it. Create a WAVE folder."
-        print "Type in first the directory to the MP3TAG folder and then the directory to the WAVE folder: "
-
-        j = 0
-        while j < 2:
-            y = raw_input("Directory: ")
-            self.second.append(y)
-            j+=1
-        if len(self.second) == 2:
-            self.mp3_to_wave(self.second[0],self.second[1])
-
+        if a == "-cmp3":
+            self.mp3_to_wave(input_path,output_path)
+        elif a == "-cm4a":
+            self.m4a_to_mp3(input_path,output_path)
 
 
     def m4a_to_mp3(self,inp,out):

@@ -4,25 +4,19 @@
 from conversion import Conversion
 from extraction import Extraction
 from distance import Distance
-
+from sys import argv
 
 
 if __name__ == "__main__":
     
-    y = None
+    y = argv[1]
     
-    while (y != "q"):
-        
-        message = "What do you want to do? File conversion (c), feature extraction (e) or distance calculation (d)? : "
-        y = raw_input(message)
-        
-        if y == "c":
-            c = Conversion()
-        elif y == "e":
-            e = Extraction()
-        elif y == "d":
-            d = Distance()
-        elif y == "q":
-            print "Goodbye!"
-        else:
-            print "There is no %r option, please try again." %(y)
+
+    if "-c" in y:
+        c = Conversion(y)
+    elif y == "-e":
+        e = Extraction()
+    elif y == "-d":
+        d = Distance()
+    else:
+        print "There is no %r option, please try again." %(y)

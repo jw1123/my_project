@@ -9,11 +9,12 @@ class Distance:
 
     def __init__(self):
 
+        print "DISTANCE CALCULATION"
         try:
             con = Connection()
         except:
             call(["osascript", "-e", 'tell app "Terminal" to do script "mongod"'])
-            sleep(1)
+            sleep(2)
             con = Connection()
         db = con.extraction_test
         song_features = db.song_features

@@ -13,7 +13,6 @@ from subprocess import call
 from pymongo import Connection
 from aubio import tempo, source
 
-
 class Extraction:
 
     def __init__(self):
@@ -40,7 +39,7 @@ class Extraction:
         song3 = db.song3
         self.so = [song1, song2, song3]
 
-        path_data = '/Users/jonathan/Documents/Toolbox/Document/data.txt'
+        path_data = '/Users/jonathan/Documents/Toolbox/Document/data.txt' #replace with path to document
         da = open(path_data,'r')
 
         for lin in da:
@@ -52,7 +51,7 @@ class Extraction:
                 parameters = []
                 for l in li[1:]:
                     if l == 'skip':
-                        parameters.append({"Default":""})
+                        parameters.append({"default":""})
                     else:
                         param_dic = {}
                         par = l.split("-")
@@ -77,7 +76,7 @@ class Extraction:
         except:
             win_s = 512                 # fft size
             samplerate = 11000
-        
+            
         hop_s = win_s / 2           # hop size
 
 
@@ -115,7 +114,6 @@ class Extraction:
             b = median(bpms)*2
         else:
             b = median(bpms)
-
         return b
 
 
@@ -145,7 +143,7 @@ class Extraction:
         i = 0
         for f in self.features:
             if f != 'BPM':
-                if para[i] != {"Default":""}:
+                if para[i] != {"default":""}:
                     fea_dic.update({f:self.features_list[f](x,**para[i])})
                 else:
                     fea_dic.update({f:self.features_list[f](x)})
@@ -174,7 +172,7 @@ class Extraction:
 
         i = 0
 
-        direc = '/Users/jonathan/Documents/DesktopiMac/WAVE/files/'
+        direc = '/Users/jonathan/Documents/DesktopiMac/WAVE/files/' #replace with path to wave files
 
         for root,dirs,files in os.walk(direc): #replace the path
             for file1 in files:
@@ -194,8 +192,8 @@ class Extraction:
                         b = ''
                         a = param[j]
                         for p in a:
-                            if p == "Default" or "":
-                                b = "Default  "
+                            if p == "default" or "":
+                                b = "default  "
                             else:
                                 b += p +'-'+ str(a[p]) + ', '
                         dbfeat.update({feat1:{b[0:len(b)-2]:features_dict[feat1]}})
