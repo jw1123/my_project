@@ -54,7 +54,7 @@ class Conversion():
                         call(["ffmpeg", "-i", inp+fil, out+fil[0:len(fil)-3]+"mp3"])
                     except:
                         print "%r could not be converted." % (fil)
-        print "Conversion completed."
+        print "Conversion successfully completed!"
 
 
     def mp3_to_wave(self,inp,out):

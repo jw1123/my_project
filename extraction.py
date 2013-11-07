@@ -7,124 +7,116 @@ from bregman.suite import os, Chromagram, HighQuefrencyChromagram, HighQuefrency
 LinearFrequencySpectrumCentroid, LinearFrequencySpectrumSpread, LinearPower, LogFrequencySpectrum, LogFrequencySpectrumCentroid, LogFrequencySpectrumSpread,\
 LowQuefrencyLogFrequencySpectrum, LowQuefrencyMelSpectrum, MelFrequencyCepstrum, MelFrequencySpectrumCentroid, MelFrequencySpectrumSpread, RMS, dBPower
 from contextlib import closing
-from wave import open
-from numpy import arange
+from wave import open as wopen
+from numpy import arange, median, mean
 from subprocess import call
 from pymongo import Connection
+from aubio import tempo, source
 
 
 class Extraction:
 
     def __init__(self):
-        dic_feat = {'1':'Chromagram','2':'HighQuefrencyChromagram','3':'HighQuefrencyLogFrequencySpectrum',\
-        '4':'HighQuefrencyMelSpectrum','5':'LinearFrequencySpectrum','6':'LinearFrequencySpectrumCentroid',\
-        '7':'LinearFrequencySpectrumSpread','8':'LinearPower','9':'LogFrequencySpectrum',\
-        '10':'LogFrequencySpectrumCentroid','11':'LogFrequencySpectrumSpread','12':'LowQuefrencyLogFrequencySpectrum',\
-        '13':'LowQuefrencyMelSpectrum','14':'MelFrequencyCepstrum (MFCC)','15':'MelFrequencySpectrumCentroid',\
-        '16':'MelFrequencySpectrumSpread','17':'RMS','18':'dBPower','19':'BPM'}
-        self.features = {'Chromagram':Chromagram,'HighQuefrencyChromagram':HighQuefrencyChromagram,'HighQuefrencyLogFrequencySpectrum':HighQuefrencyLogFrequencySpectrum,\
+
+        self.features_list = {'Chromagram':Chromagram,'HighQuefrencyChromagram':HighQuefrencyChromagram,'HighQuefrencyLogFrequencySpectrum':HighQuefrencyLogFrequencySpectrum,\
         'HighQuefrencyMelSpectrum':HighQuefrencyMelSpectrum,'LinearFrequencySpectrum':LinearFrequencySpectrum,'LinearFrequencySpectrumCentroid':LinearFrequencySpectrumCentroid,\
         'LinearFrequencySpectrumSpread':LinearFrequencySpectrumSpread,'LinearPower':LinearPower,'LogFrequencySpectrum':LogFrequencySpectrum,\
         'LogFrequencySpectrumCentroid':LogFrequencySpectrumCentroid,'LogFrequencySpectrumSpread':LogFrequencySpectrumSpread,'LowQuefrencyLogFrequencySpectrum':LowQuefrencyLogFrequencySpectrum,\
-        'LowQuefrencyMelSpectrum':LowQuefrencyMelSpectrum,'MelFrequencyCepstrum (MFCC)':MelFrequencyCepstrum,'MelFrequencySpectrumCentroid':MelFrequencySpectrumCentroid,\
-        'MelFrequencySpectrumSpread':MelFrequencySpectrumSpread,'RMS':RMS,'dBPower':dBPower,'BPM':'replace' } #replace BPM!!!!!!!
+        'LowQuefrencyMelSpectrum':LowQuefrencyMelSpectrum,'MelFrequencyCepstrum':MelFrequencyCepstrum,'MelFrequencySpectrumCentroid':MelFrequencySpectrumCentroid,\
+        'MelFrequencySpectrumSpread':MelFrequencySpectrumSpread,'RMS':RMS,'dBPower':dBPower,'BPM':'BPM' } #replace BPM!!!!!!!
+
+        self.parameters_list, self.features = [], []
 
         print "EXTRACTION"
-        print "You chose extraction. A terminal window will be opened to connect with MongoDB."
-        
         try:
             con = Connection()
         except:
             call(["osascript", "-e", 'tell app "Terminal" to do script "mongod"'])
-            sleep(1)
+            sleep(2)
             con = Connection()
         db = con.extraction_test #change the name of the database
-        song_features = db.song_features
-        self.so = song_features
+        song1 = db.song1
+        song2 = db.song2
+        song3 = db.song3
+        self.so = [song1, song2, song3]
 
-        print "The features that can be extracted are the following: "
-        print "________________________________________________"
-        print """
-        1. Chromagram
-        2. HighQuefrencyChromagram
-        3. HighQuefrencyLogFrequencySpectrum
-        4. HighQuefrencyMelSpectrum
-        5. LinearFrequencySpectrum
-        6. LinearFrequencySpectrumCentroid
-        7. LinearFrequencySpectrumSpread
-        8. LinearPower
-        9. LogFrequencySpectrum
-        10. LogFrequencySpectrumCentroid
-        11. LogFrequencySpectrumSpread
-        12. LowQuefrencyLogFrequencySpectrum
-        13. LowQuefrencyMelSpectrum
-        14. MelFrequencyCepstrum (MFCC)
-        15. MelFrequencySpectrumCentroid
-        16. MelFrequencySpectrumSpread
-        17. RMS
-        18. dBPower
-        19. BPM
-        """
-        print "________________________________________________"
-        print "You may now chose the features you wish to extract (referring to their number as listed above)"
-        print "and type f when you're done: "
+        path_data = '/Users/jonathan/Documents/Toolbox/Document/data.txt'
+        da = open(path_data,'r')
 
-        y = None
-        feat = []
-        self.featlist = []
-        while (y != 'f'):
-            y = raw_input()
-            if y != 'f':
-                feat.append(y)
-                self.featlist.append(dic_feat[y])
-
-        print "You can now chose to set all the parameter values for each feature at your liking. The default values"
-        print "(and the explanation) are as follows: "
-        print "________________________________________________"
-        print """
-        'sample_rate': 44100, # The audio sample rate
-        'nbpo': 12,           # Number of Bands Per Octave for front-end filterbank
-        'ncoef' : 10,         # Number of cepstral coefficients to use for cepstral features
-        'lcoef' : 1,          # Starting cepstral coefficient
-        'lo': 62.5,           # Lowest band edge frequency of filterbank
-        'hi': 16000,          # Highest band edge frequency of filterbank
-        'nfft': 16384,        # FFT length for filterbank
-        'wfft': 8192,         # FFT signal window length
-        'nhop': 4410,         # FFT hop size
-        'log10': False,       # Whether to use log output
-        'magnitude': True,    # Whether to use magnitude (False=power)
-        'intensify' : False,  # Whether to use critical band masking in chroma extraction
-        'onsets' : False,     # Whether to use onset-synchronus features
-        'verbosity' : 1       # How much to tell the user about extraction
-        """
-        print "________________________________________________"
-        print "Type in first the name of the parameter (be careful to write it EXACTLY like it is written in the list above and in the same order)"
-        print "and then the value you want to set (else the extraction will occur with default values) for each feature. "
-        print "If you have no more paramaters you want to change for a specific feature, type in f two times: "
-
-        param_list = []
-
-        for fe in feat:
-            a, b = None, None
-            param_dict = {}
-            print "_____________________________"
-            print dic_feat[fe], ": "
-            while (a != 'f'):
-                a = raw_input("Parameter: ")
-                b = raw_input("Value: ")
-                try:
-                    c = int(b)
-                except:
-                    if b == "True":
-                        c = True
+        for lin in da:
+            li = lin.split("--")
+            li[len(li)-1] = li[len(li)-1].replace("\n",'')
+            if li[0] == "Features":
+                self.features = li[1:]
+            elif li[0] == "Parameters":
+                parameters = []
+                for l in li[1:]:
+                    if l == 'skip':
+                        parameters.append({"Default":""})
                     else:
-                        c = False
-                if a != 'f' and b != 'f':
-                    param_dict.update({a:c})
-            param_list.append(param_dict)
+                        param_dic = {}
+                        par = l.split("-")
+                        for p in par:
+                            val = p.split(":")
+                            param_dic.update({val[0]:int(val[1])})
+                        parameters.append(param_dic)
+                self.parameters_list.append(parameters)
 
-        self.extract(param_list)
+        self.iteratori = 0
 
+        for i in self.parameters_list:
+            self.extract(i)
+            self.iteratori += 1
+        da.close()
+
+
+    def bpm(self,path,param):
+        try:
+            win_s = param['wfft']
+            samplerate = param['sampe_rate']
+        except:
+            win_s = 512                 # fft size
+            samplerate = 11000
+        
+        hop_s = win_s / 2           # hop size
+
+
+        s = source(path, samplerate, hop_s)
+        samplerate = s.samplerate
+        o = tempo("default", win_s, hop_s, samplerate)
+
+        # tempo detection delay, in samples
+        # default to 4 blocks delay to catch up with
+        delay = 4. * hop_s
+
+        # list of beats, in samples
+        beats = []
+
+        # total number of frames read
+        total_frames = 0
+        while True:
+            samples, read = s()
+            is_beat = o(samples)
+            if is_beat:
+                this_beat = int(total_frames - delay + is_beat[0] * hop_s)
+                #print "%f" % (this_beat / float(samplerate))
+                beats.append(this_beat)
+            total_frames += read
+            if read < hop_s: break
+
+        #convert samples to seconds
+        beats = map( lambda x: x / float(samplerate), beats)
+
+        bpms = [60./(b - a) for a,b in zip(beats[:-1],beats[1:])]
+
+        if samplerate == 11000:
+            b = median(bpms)*4
+        elif samplerate == 22000:
+            b = median(bpms)*2
+        else:
+            b = median(bpms)
+
+        return b
 
 
 
@@ -151,8 +143,16 @@ class Extraction:
     def extract_feat(self,x,para):
         fea_dic = {}
         i = 0
-        for f in self.featlist:
-            fea_dic.update({f:self.features[f](x,**para[i])})
+        for f in self.features:
+            if f != 'BPM':
+                if para[i] != {"Default":""}:
+                    fea_dic.update({f:self.features_list[f](x,**para[i])})
+                else:
+                    fea_dic.update({f:self.features_list[f](x)})
+            else:
+                fea_dic.update({f:self.bpm(x,para[i])})
+
+            i += 1
         fea_dic1 = {}
         for fe in fea_dic:
             if 'Chromagram' in fe:
@@ -163,37 +163,41 @@ class Extraction:
                 fea_dic1.update({fe:self.wind(fea_dic[fe].STFT,50)})
             elif fe == 'LinearPower' or fe == 'RMS' or fe == 'dBPower':
                 fea_dic1.update({fe:self.wind(fea_dic[fe].POWER,10)})
+            elif fe == 'BPM':
+                fea_dic1.update({fe:fea_dic[fe]})
             else:
                 fea_dic1.update({fe:self.wind(fea_dic[fe].CQFT,50)})
         return fea_dic1
 
 
-    def extract(self,paramet): 
+    def extract(self,param): 
 
         i = 0
 
-        print "Type in the directory to the folder with all your wave files: "
-        direc = raw_input()
-        print "The extraction can take a while, please wait..."
+        direc = '/Users/jonathan/Documents/DesktopiMac/WAVE/files/'
 
         for root,dirs,files in os.walk(direc): #replace the path
             for file1 in files:
                 i += 1
                 if file1[len(file1)-3:len(file1)] == "wav":
-                    with closing(open(direc+file1,"r")) as f:
+                    w = wopen(direc+file1,"r")
+                    with closing(w) as f:
                         frame = f.getnframes()
                         rate = f.getframerate()
                     meta = file1.split("-*-")
-                    features_dict = self.extract_feat(direc+file1,paramet)
+                    features_dict = self.extract_feat(direc+file1,param)
 
                     dbfeat = {}
                     j = 0
                     a = None
-                    for feat1 in self.featlist:
+                    for feat1 in self.features:
                         b = ''
-                        a = paramet[j]
+                        a = param[j]
                         for p in a:
-                            b += p +'-'+ str(a[p]) + ', '
+                            if p == "Default" or "":
+                                b = "Default  "
+                            else:
+                                b += p +'-'+ str(a[p]) + ', '
                         dbfeat.update({feat1:{b[0:len(b)-2]:features_dict[feat1]}})
                         j += 1
 
@@ -217,7 +221,7 @@ class Extraction:
                     except:
                         alb = None
 
-                    self.so.insert({
+                    self.so[self.iteratori].insert({
                         'id':i,
                         'metadata': {
                         'title':tit,
@@ -229,5 +233,7 @@ class Extraction:
                         },
                         'features': dbfeat,
                         })
+                    print dbfeat
+                    w.close()
         print "Extraction successfully completed!"
 
